@@ -1,6 +1,9 @@
 #include "distance.h"
 #include <cstdio>
 #include <unordered_map>
+#include <iostream>
+#include <string>
+#include <string_view>
 
 namespace /* private */ {
   std::string getDistanceUnitSign(DistanceUnit unit)
@@ -25,26 +28,26 @@ namespace DistanceConversion
 
     double targetValue = convertDistance(sourceValue, from, to);
 
-    printf("%.2f%s is %.2f%s\n", sourceValue, getDistanceUnitSign(from).c_str(), targetValue, getDistanceUnitSign(to).c_str());
+    std::cout << sourceValue << getDistanceUnitSign(from) << " is " << targetValue << getDistanceUnitSign(to) << std::endl;
   }
 
   double getSourceValue()
   {
     double value;
-    printf("Enter the value to be converted: ");
-    scanf("%lf", &value);
+    std::cout << "Enter the value to be converted: ";
+    std::cin >> value;
     return value;
   }
 
   DistanceUnit getDistanceUnit(const std::string_view &sourceOrTarget)
   {
     int choice;
-    printf("Select %s distance unit:\n", std::string(sourceOrTarget).c_str());
-    printf("[1] Meters\n");
-    printf("[2] Feet\n");
-    printf("[3] Yards\n");
-    printf("Enter choice: ");
-    scanf("%d", &choice);
+    std::cout << "Select " << sourceOrTarget << " distance unit:\n";
+    std::cout << "[1] Meters\n";
+    std::cout << "[2] Feet\n";
+    std::cout << "[3] Yards\n";
+    std::cout << "Enter choice: ";
+    std::cin >> choice;
 
     switch (choice)
     {
@@ -61,7 +64,42 @@ namespace DistanceConversion
 
   double convertDistance(double value, DistanceUnit from, DistanceUnit to)
   {
-    // Todo implement the actual conversion logic
-    return 0;
+    // Conversion logic
+    switch (from)
+    {
+    case DistanceUnit::Meters:
+      switch (to)
+      {
+      case DistanceUnit::Feet:
+        return value * 3.28084;
+      case DistanceUnit::Yards:
+        return value * 1.09361;
+      default:
+        return value;
+      }
+    case DistanceUnit::Feet:
+      switch (to)
+      {
+      case DistanceUnit::Meters:
+        return value / 3.28084;
+      case DistanceUnit::Yards:
+        return value / 3.0;
+      default:
+        return value;
+      }
+    case DistanceUnit::Yards:
+      switch (to)
+      {
+      case DistanceUnit::Meters:
+        return value / 1.09361;
+      case DistanceUnit::Feet:
+        return value * 3.0;
+      default:
+        return value;
+      }
+    default:
+      return value;
+    }
+
   }
 }

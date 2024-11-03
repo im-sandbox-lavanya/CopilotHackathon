@@ -6,4 +6,6 @@ add_library(
   temperature.cpp
   temperature.h
   types.h
+  weight.h  
+  weight.cpp
 )

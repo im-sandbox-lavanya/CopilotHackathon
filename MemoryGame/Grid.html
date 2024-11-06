@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        .grid {
+            display: grid;
+            gap: 5px; /* Reduced gap between cards */
+            justify-content: center; /* Center the grid */
+        }
+        .card {
+            width: 60px; /* Reduced card width */
+            height: 90px; /* Reduced card height */
+            background-color: gray;
+            transition: transform 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em; /* Reduced font size */
+            cursor: pointer;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Game</h1>
+    <div>
+        <label for="gridSize">Grid Size:</label>
+        <select id="gridSize">
+            <option value="2">2x2</option>
+            <option value="4">4x4</option>
+            <option value="6">6x6</option>
+            <option value="8">8x8</option>
+        </select>
+        <label for="numPlayers">Number of Players:</label>
+        <select id="numPlayers">
+            <option value="1">1 Player</option>
+            <option value="2">2 Players</option>
+        </select>
+        <button id="startGame">Start Game</button>
+    </div>
+    <div id="gameGrid" class="grid"></div>
+
+    <script>
+        class Card {
+            constructor(symbol) {
+                this.symbol = symbol;
+                this.isFaceUp = false;
+                this.element = this.createElement();
+            }
+
+            createElement() {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.textContent = this.symbol;
+                return card;
+            }
+
+            flip() {
+                this.isFaceUp = !this.isFaceUp;
+                this.element.classList.toggle('flipped', this.isFaceUp);
+            }
+        }
+
+        class Grid {
+            constructor(size, symbols) {
+                this.size = size;
+                this.symbols = symbols;
+                this.cards = this.createCards(symbols);
+                this.flippedCards = [];
+                this.matchedCards = [];
+                this.init();
+            }
+
+            createCards(symbols) {
+                const cards = [];
+                for (let i = 0; i < this.size * this.size / 2; i++) {
+                    cards.push(new Card(symbols[i]), new Card(symbols[i]));
+                }
+                return this.shuffle(cards);
+            }
+
+            shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            init() {
+                this.renderCards();
+                this.attachEventListeners();
+            }
+
+            renderCards() {
+                const gameGrid = document.getElementById('gameGrid');
+                gameGrid.innerHTML = ''; // Clear the grid before rendering new cards
+                gameGrid.style.gridTemplateColumns = `repeat(${this.size}, 1fr)`;
+                this.cards.forEach(card => gameGrid.appendChild(card.element));
+            }
+
+            attachEventListeners() {
+                this.cards.forEach(card => {
+                    card.element.addEventListener('click', () => this.flipCard(card));
+                });
+            }
+
+            flipCard(card) {
+                if (this.flippedCards.length < 2 && !card.isFaceUp) {
+                    card.flip();
+                    this.flippedCards.push(card);
+
+                    if (this.flippedCards.length === 2) {
+                        setTimeout(() => this.checkMatch(), 1000);
+                    }
+                }
+            }
+
+            checkMatch() {
+                const [card1, card2] = this.flippedCards;
+                if (card1.symbol === card2.symbol) {
+                    this.matchedCards.push(card1, card2);
+                } else {
+                    this.resetCards(card1, card2);
+                }
+                this.flippedCards = [];
+                if (this.matchedCards.length === this.cards.length) {
+                    alert('You win!');
+                    this.resetGame();
+                }
+            }
+
+            resetCards(card1, card2) {
+                card1.flip();
+                card2.flip();
+            }
+
+            resetGame() {
+                this.cards = this.createCards(this.symbols);
+                this.flippedCards = [];
+                this.matchedCards = [];
+                this.renderCards(); // Re-render the grid with new cards
+            }
+        }
+
+        document.getElementById('startGame').addEventListener('click', () => {
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, gridSize * gridSize / 2);
+            const gameGrid = new Grid(gridSize, symbols);
+        });
+    </script>
+</body>
+</html>
